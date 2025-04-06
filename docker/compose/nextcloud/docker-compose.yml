@@ -14,7 +14,7 @@ services:
       - POSTGRES_PASSWORD=nextcloud
       - POSTGRES_DB=nextcloud
       - POSTGRES_USER=nextcloud
-    restart: always
+    restart: unless-stopped
     volumes:
       - nc_vol:/var/www/html
     networks:
@@ -28,7 +28,7 @@ services:
       - POSTGRES_PASSWORD=nextcloud
       - POSTGRES_DB=nextcloud
       - POSTGRES_USER=nextcloud
-    restart: always
+    restart: unless-stopped
     networks:
       - cloud_db
     volumes:
@@ -39,15 +39,32 @@ services:
   ###### REDIS ######
   redis:
     image: redis:alpine
-    restart: always
+    restart: unless-stopped
     networks:
       - cloud_redis
     expose:
       - 6379
 
+  ##### Collabora Code Server #####
+  office:
+    image: collabora/code:latest
+    container_name: ncoffice
+    volumes:
+      - coolwsd_vol:/etc/coolwsd
+    restart: unless-stopped
+    cap_add:
+      - MKNOD
+    environment:
+      - username=admin # Different in production
+      - password=admin # Different in production
+      - aliasgroup1=https://cloud.zyming.me:443
+      - aliasgroup2=https://office.zyming.me:443
+      - dictionaries="en_GB en_US sv_SE zh_CN ja_JP"
+
 volumes:
   db_vol:
   nc_vol:
+  coolwsd_vol:
 
 networks:
   cloud_redis:
